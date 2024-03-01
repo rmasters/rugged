@@ -61,6 +61,7 @@ Similarly, this can be nested further:
 <table>
 <tr>
 <td>
+
 ```json
 {
     "order_id": "1234",
@@ -72,8 +73,10 @@ Similarly, this can be nested further:
     "product[2][price]": 300
 }
 ```
+
 </td>
 <td>
+
 ```json
 {
     "order_id": "1234",
@@ -84,6 +87,7 @@ Similarly, this can be nested further:
     ]
 }
 ```
+
 </td>
 </tr>
 </table>
