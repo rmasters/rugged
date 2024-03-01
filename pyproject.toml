@@ -1,6 +1,6 @@
 [project]
 name = "rugged"
-version = "0.1.0"
+version = "0.1.1"
 description = "ASGI middleware to unflatten JSON request bodies"
 dependencies = [
     "starlette<=1",
