@@ -1,4 +1,7 @@
-# Rugged
+<h1>
+  Rugged
+  <a href="https://pypi.org/project/rugged"><img src="https://img.shields.io/pypi/v/rugged"></a>
+</h1>
 
 An ASGI middleware to unflatten JSON request keys into nested structures.
 
@@ -98,9 +101,9 @@ for the `unflatten()` function.
 Usage in [starlette][tests-starlette] and [fastapi][tests-fastapi] can be seen
 in the respective test files, pending documentation.
 
-[tests]: tests/test_unflatteners.py
-[tests-starlette]: tests/test_middleware_starlette.py
-[tests-fastapi]: tests/test_middleware_fastapi.py
+[tests]: https://github.com/rmasters/rugged/blob/main/tests/test_unflatteners.py
+[tests-starlette]: https://github.com/rmasters/rugged/blob/main/tests/test_middleware_starlette.py
+[tests-fastapi]: https://github.com/rmasters/rugged/blob/main/tests/test_middleware_fastapi.py
 
 ## Roadmap / future development ideas
 
