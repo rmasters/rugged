@@ -95,7 +95,12 @@ Similarly, this can be nested further:
 A canonical set of supported inputs can be found by reading the [unit tests][tests]
 for the `unflatten()` function.
 
+Usage in [starlette][tests-starlette] and [fastapi][tests-fastapi] can be seen
+in the respective test files, pending documentation.
+
 [tests]: tests/test_unflatteners.py
+[tests-starlette]: tests/test_middleware_starlette.py
+[tests-fastapi]: tests/test_middleware_fastapi.py
 
 ## Roadmap / future development ideas
 
