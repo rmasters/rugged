@@ -1,6 +1,5 @@
 [project]
 name = "rugged"
-version = "0.1.1"
 description = "ASGI middleware to unflatten JSON request bodies"
 dependencies = [
     "starlette<=1",
@@ -13,6 +12,7 @@ classifiers = [
     "License :: OSI Approved :: MIT License",
     "Operating System :: OS Independent",
 ]
+dynamic = ["version"]
 [project.urls]
 Homepage = "https://github.com/rmasters/rugged"
 Issues = "https://github.com/rmasters/rugged/issues"
@@ -32,6 +32,9 @@ dev-dependencies = [
 
 [tool.hatch.metadata]
 allow-direct-references = true
+
+[tool.hatch.version]
+path = "rugged/__init__.py"
 
 [tool.hatch.build.targets.wheel]
 packages = ["rugged"]
