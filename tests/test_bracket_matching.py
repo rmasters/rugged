@@ -9,3 +9,9 @@ def test_find_square_bracket_pairs() -> None:
 
 def test_find_empty_square_bracket_pairs() -> None:
     assert parse_key("contacts[]") == ("contacts", [None])
+
+
+def test_broken_brackets() -> None:
+    assert parse_key("address[road") == ("address[road", [])
+    assert parse_key("address]city[") == ("address]city[", [])
+    assert parse_key("[address][postcode]") == (None, ["address", "postcode"])

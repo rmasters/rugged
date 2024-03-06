@@ -21,9 +21,7 @@ def test_fastapi_usage() -> None:
     response = client.post(
         "/invite",
         json={
-            "emails[0]": "foo@example.com",
-            "emails[1]": "bar@example.com",
-            "emails[2]": "baz@example.com",
+            "emails[]": ["foo@example.com", "bar@example.com", "baz@example.com"],
         },
     )
 
