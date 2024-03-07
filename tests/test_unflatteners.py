@@ -1,4 +1,3 @@
-from datetime import datetime, UTC
 from uuid import uuid4
 
 import pytest
@@ -11,7 +10,6 @@ def test_unflatten_flat_dict() -> None:
         "user_id": uuid4(),
         "email": "ross@example.com",
         "name": ["Ross", "Masters"],
-        "join_date": datetime.now(UTC),
     }
 
     assert unflatten(d) == d
@@ -57,7 +55,7 @@ def test_unflatten_deep_nesting() -> None:
         "reports[weekly][name]": "Weekly summary",
         "reports[weekly][recipient]": "ross@example.com",
         "reports[weekly][schedule]": "0 0 0 * *",
-        "updated_at": datetime.now(UTC),
+        "updated_at": "2024-01-01T00:00:00Z",
     }
 
     assert unflatten(d) == {
