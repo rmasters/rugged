@@ -1,6 +1,9 @@
 name: Test
 
 on:
+  push:
+    branches:
+      - main
   pull_request:
     types:
       - opened
@@ -80,6 +83,7 @@ jobs:
         run: |
           ./.venv/bin/pytest --junitxml=pytest.xml --cov=rugged --cov-report=xml:coverage.xml tests/ | tee pytest-coverage.txt
       - name: Comment PR
+        if: ${{ github.event_name == 'pull_request' }}
         uses: MishaKav/pytest-coverage-comment@main
         with:
           pytest-xml-coverage-path: ./coverage.xml
