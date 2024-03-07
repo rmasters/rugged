@@ -1,11 +1,15 @@
+import copy
 from collections.abc import Mapping
 import re
 from typing import Any, Iterable, TypeVar
 
 key_pattern = re.compile(r"\[([^\]]*)\]")
 
+ParsedKey = tuple[str | None, list[str | None]]
+ValidParsedKey = tuple[str, list[str | None]]
 
-def parse_key(key: str) -> tuple[str | None, list[str | None]]:
+
+def parse_key(key: str) -> ParsedKey:
     """
     Finds paired square brackets in a key, and returns the inner values
 
@@ -84,6 +88,7 @@ def unflatten(data: dict[str, Any]) -> dict[str, Any] | list[Any]:
         root_key, indexes = parse_key(key)
 
         # Return invalid keys like `[address][postcode]` as-is
+        # TODO: boot these out in parse_keys
         if root_key is None:
             nested[key] = value
             continue
@@ -171,7 +176,7 @@ def unflatten(data: dict[str, Any]) -> dict[str, Any] | list[Any]:
     for path in list_paths:
         # Get the list of objects from the nested dictionary
         nested_root: dict[str, Any] = nested
-        target: list[dict[str, Any]] = []
+        target: list[dict[str, Any]]
         # Container is the object that contains this list, and the key it is set to
         # TODO: This probably doesn't work with root[][][key] paths (but should it?)
         container: dict[str, Any] = {}
@@ -192,7 +197,70 @@ def unflatten(data: dict[str, Any]) -> dict[str, Any] | list[Any]:
         # Restructure the list into a list of objects
         container[container_key] = restructure_list(target)
 
+    # Post-process the data to convert sequential 0-indexed integer keys to list
+    nested = sequential_keys_to_list(nested)
+
     return nested
+
+
+def sequential_keys_to_list(data: dict[str, Any]) -> dict[str, Any]:
+    """
+    Processes the dict to convert:
+        {
+            "users": {
+                "0": { "name": "Foo" },
+                "1": { "name": "Bar" },
+            },
+            "user_aliases": {
+                "by_idx": {
+                    "0": "Foo",
+                    "1": "Bar",
+                },
+            },
+        }
+    to
+        {
+            "users": [
+                { "name": "Foo" },
+                { "name": "Bar" },
+            ],
+            "user_aliases": {
+                "by_idx": [
+                    "Foo",
+                    "Bar",
+                ],
+            },
+        }
+
+    """
+
+    def walk(node_: Any) -> Any:
+        node = copy.copy(node_)
+
+        if isinstance(node, dict):
+            print(f"{node.keys()=}")
+            # If all keys are 0-indexed, sequential integers, convert to list
+            is_digits = all(k.isdigit() for k in node.keys())
+            is_0_indexed = len(node.keys()) and list(node.keys())[0] == "0"
+            is_sequential = list(node.keys()) == list(map(str, range(len(node.keys()))))
+            print(f"{is_digits=}, {is_0_indexed=}, {is_sequential=}")
+
+            if all([is_digits, is_0_indexed, is_sequential]):
+                return list(walk(list(node.values())))
+
+            for k, v in node.items():
+                node[k] = walk(v)
+
+            return node
+
+        if isinstance(node, list):
+            return [walk(v) for v in node]
+
+        return node
+
+    result = walk(data)
+    assert isinstance(result, dict)
+    return result
 
 
 def restructure_list(target: list[Any]) -> list[dict[str, Any]]:

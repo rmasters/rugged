@@ -194,35 +194,6 @@ def test_unflattening_multi_list_item_deep_structure() -> None:
     }
 
 
-def test_sequential_ints_treated_as_named_brackets() -> None:
-    d = {
-        "users[0][name]": "Foo",
-        "users[0][email]": "foo@example.com",
-        "users[1][name]": "Bar",
-        "users[1][email]": "bar@example.com",
-        "users[2][name]": "Baz",
-        "users[2][email]": "baz@example.com",
-    }
-
-    assert unflatten(d) == {
-        "users": {
-            "0": {
-                "name": "Foo",
-                "email": "foo@example.com",
-            },
-            "1": {
-                "name": "Bar",
-                "email": "bar@example.com",
-            },
-            "2": {
-                "name": "Baz",
-                "email": "baz@example.com",
-            },
-        }
-    }
-
-
-@pytest.mark.xfail(reason="Future intention, not yet supported")
 def test_sequential_ints_treated_as_lists() -> None:
     d = {
         "users[0][name]": "Foo",
