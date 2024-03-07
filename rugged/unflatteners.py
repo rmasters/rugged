@@ -1,6 +1,6 @@
 from collections.abc import Mapping
 import re
-from typing import Any, Iterable
+from typing import Any, Iterable, TypeVar
 
 key_pattern = re.compile(r"\[([^\]]*)\]")
 
@@ -22,10 +22,10 @@ def parse_key(key: str) -> tuple[str | None, list[str | None]]:
     key_pairs = key_pattern.findall(key)
 
     # If there was a matched key, use the text before as the prefix
-    prefix = key
+    prefix: str | None = key
     if len(key_pairs) > 0:
         prefix = key.split(f"[{key_pairs[0]}]", 1)[0]
-    prefix = prefix if len(prefix) > 0 else None
+    prefix = prefix if prefix else None
 
     return prefix, [sub_key if len(sub_key) > 0 else None for sub_key in key_pairs]
 
@@ -119,9 +119,10 @@ def unflatten(data: dict[str, Any]) -> dict[str, Any] | list[Any]:
                 # TODO: If root was set to a value/map earlier, this will overwrite root. Unsure how to handle - error?
                 if not isinstance(root, list):
                     root = parent
+                    assert prev_idx is not None
                     root[prev_idx] = []
                     # Capture path for restructuring later
-                    list_paths.append(path[:-1])
+                    list_paths.append(path[:-1])  # type: ignore[arg-type]
 
                 # Don't change parent as we've replaced it
                 root = parent[prev_idx]
@@ -129,11 +130,14 @@ def unflatten(data: dict[str, Any]) -> dict[str, Any] | list[Any]:
 
                 # Handle root_key[...][] = value
                 if is_last:
+                    assert isinstance(root, list) and root_is_list
                     root.extend(value) if isinstance(value, list) else root.append(
                         value
                     )
 
                 continue
+
+            assert index is not None
 
             # Named square-bracket cases, item[...][key] => value
             if root_is_list and is_last:
@@ -145,6 +149,7 @@ def unflatten(data: dict[str, Any]) -> dict[str, Any] | list[Any]:
                     value = [value]
 
                 obj[index] = value
+                assert isinstance(root, list) and root_is_list
                 root.append(obj)
 
                 continue
@@ -165,17 +170,24 @@ def unflatten(data: dict[str, Any]) -> dict[str, Any] | list[Any]:
     # Restructure lists of objects into multiple objects
     for path in list_paths:
         # Get the list of objects from the nested dictionary
-        target: list[dict] | dict = nested
+        nested_root: dict[str, Any] = nested
+        target: list[dict[str, Any]] = []
         # Container is the object that contains this list, and the key it is set to
         # TODO: This probably doesn't work with root[][][key] paths (but should it?)
-        container = None
-        container_key = None
+        container: dict[str, Any] = {}
+        container_key: str = ""
         for idx, part in enumerate(path):
             # Capture container
             if idx == len(path) - 1:
-                container = target
+                container = nested_root
                 container_key = part
-            target = target[part]
+            nested_root = nested_root[part]
+
+        if not isinstance(nested_root, list):
+            # TODO: Raise warning
+            continue
+
+        target = nested_root
 
         # Restructure the list into a list of objects
         container[container_key] = restructure_list(target)
@@ -192,7 +204,7 @@ def restructure_list(target: list[Any]) -> list[dict[str, Any]]:
 
     # Compose each obj into a single map
     # Duplicates are supported, but shouldn't be common
-    key_values = {}
+    key_values: dict[str, list[str]] = {}
     for obj in target:
         for key, value in obj.items():
             if key not in key_values:
@@ -219,8 +231,11 @@ def restructure_list(target: list[Any]) -> list[dict[str, Any]]:
     return objs
 
 
-def all_equal(items: Iterable) -> bool:
-    val = None
+T = TypeVar("T")
+
+
+def all_equal(items: Iterable[T]) -> bool:
+    val: T | None = None
     for item in items:
         if val is None:
             val = item
