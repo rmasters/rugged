@@ -18,85 +18,63 @@ as AJAX requests, and the hx-json-enc extension to send form data as JSON.
 For example, with a form like so:
 
 ```html
+<h1>Your shopping list</h1>
 <form method="post" action="/invite" hx-boost="true" hx-ext="json-enc">
-    <h1>Invite users</h1>
-    <input type="text" name="emails[0]">
-    <input type="text" name="emails[1]">
-    <input type="text" name="emails[2]">
+    <label>List name <input type="text" name="title"></label>
 
-    <button onclick="addEmailInput()">Add email</button>
-    <button type="submit">Send invites</button>
+    <h2>Items</h2>
+    <input type="text" name="items[][item]"> x <input type="number" name="items[][qty]" default="1">
+    <input type="text" name="items[][item]"> x <input type="number" name="items[][qty]" default="1">
+    <input type="text" name="items[][item]"> x <input type="number" name="items[][qty]" default="1">
+
+    <button onclick="addItemFields()">Add item</button>
+    <button type="submit">Save</button>
 </form>
 ```
 
-The request body could look like this:
+The request body received by the server could look like this:
 
 ```json
 {
-    "emails[0]": "foo@example.com",
-    "emails[1]": "bar@example.com",
-    "emails[2]": "baz@example.com"
+    "title": "Sofrito time",
+    "items[][item]": ["carrots", "celery", "onions"],
+    "items[][qty]": [1, 1, 2],
 }
 ```
 
-Using the middleware, the request body is unflattened into:
+Using this middleware, the request body is unflattened into:
 
-```json
+```python
 {
-    "emails": ["foo@example.com", "bar@example.com", "baz@example.com"]
+    "title": "Sofrito time",
+    "items": [
+        {"item": "carrots", "qty": 1},
+        {"item": "celery", "qty": 1},
+        {"item": "onions", "qty": 2},
+    ],
 }
 ```
 
 This makes inputs easier to handle in a FastAPI application using Pydantic:
 
 ```python
-class InviteUsers(BaseModel):
-    emails: list[str]
+class ShoppingListItem(BaseModel):
+    item: str
+    qty: int
 
 
-@app.post("/invite")
-async def invite_users(invite: InviteUsers):
-    send_invites(invite.emails)
+class ShoppingList(BaseModel):
+    title: str
+    items: list[ShoppingListItem]
+
+
+@app.post("/list")
+async def invite_users(shopping_list: ShoppingList):
+    find_best_prices(shopping_list.items)
 ```
 
-Similarly, this can be nested further:
-
-<table>
-<tr>
-<td>
-
-```json
-{
-    "order_id": "1234",
-    "product[0][name]": "Product 1",
-    "product[0][price]": 100,
-    "product[1][name]": "Product 2",
-    "product[1][price]": 200,
-    "product[2][name]": "Product 3",
-    "product[2][price]": 300
-}
-```
-
-</td>
-<td>
-
-```json
-{
-    "order_id": "1234",
-    "product": [
-        {"name": "Product 1", "price": 100},
-        {"name": "Product 2", "price": 200},
-        {"name": "Product 3", "price": 300}
-    ]
-}
-```
-
-</td>
-</tr>
-</table>
-
-A canonical set of supported inputs can be found by reading the [unit tests][tests]
-for the `unflatten()` function.
+A canonical set of supported input names can be found by reading the [unit tests][tests]
+for the `unflatten()` function, as [well as the doc-string][docstring] - docs coming soon!
 
 Usage in [starlette][tests-starlette] and [fastapi][tests-fastapi] can be seen
 in the respective test files, pending documentation.
@@ -104,20 +82,17 @@ in the respective test files, pending documentation.
 [tests]: https://github.com/rmasters/rugged/blob/main/tests/test_unflatteners.py
 [tests-starlette]: https://github.com/rmasters/rugged/blob/main/tests/test_middleware_starlette.py
 [tests-fastapi]: https://github.com/rmasters/rugged/blob/main/tests/test_middleware_fastapi.py
+[docstring]: https://github.com/rmasters/rugged/blob/main/rugged/unflatteners.py
 
-## Roadmap / future development ideas
+## Contributing & roadmap
 
--   Support for un-indexed arrays, e.g. `product[]`
--   Support custom delimiters/formats other than square brackets, e.g. `product.0.name`
--   Support alternative JSON decoders
--   Support for re-flattening dictionaries, if useful
--   Investigate whether this middleware can be used with x-www-form-urlencoded and
-    multipart/form-data bodies
--   Some performance optimisation - can we avoid regex?
--   Establish minimum Starlette version required
--   Establish minimum Python version required
+-   This middleware is in very early development - things will change. It's being used in a small FastAPI + HTMX microsite. 
+-   See the [roadmap](https://github.com/users/rmasters/projects/3) for planned development
+-   I am experimenting with Rye to package this project - if you'd like to contribute, the docs are over at [rye-up.com][ryeup]
+
+[ryeup]: https://rye-up.com
 
 ## License
 
-This project is licensed under the terms of the [MIT license](./LICENSE.md).
+This project is released under the terms of the [MIT license](./LICENSE.md).
 
