@@ -75,3 +75,6 @@ jobs:
         with:
           pytest-xml-coverage-path: ./coverage.xml
           junitxml-path: ./pytest.xml
+          unique-id-for-comment: ${{ matrix.python-version }}
+          title: Coverage (${{ matrix.python-version }})
+          badge-title: Coverage (${{ matrix.python-version }})
