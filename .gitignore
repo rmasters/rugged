@@ -8,3 +8,7 @@ wheels/
 
 # venv
 .venv
+
+.coverage
+pytest.xml
+coverage.xml
