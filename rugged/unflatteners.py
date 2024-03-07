@@ -238,12 +238,10 @@ def sequential_keys_to_list(data: dict[str, Any]) -> dict[str, Any]:
         node = copy.copy(node_)
 
         if isinstance(node, dict):
-            print(f"{node.keys()=}")
             # If all keys are 0-indexed, sequential integers, convert to list
             is_digits = all(k.isdigit() for k in node.keys())
             is_0_indexed = len(node.keys()) and list(node.keys())[0] == "0"
             is_sequential = list(node.keys()) == list(map(str, range(len(node.keys()))))
-            print(f"{is_digits=}, {is_0_indexed=}, {is_sequential=}")
 
             if all([is_digits, is_0_indexed, is_sequential]):
                 return list(walk(list(node.values())))
